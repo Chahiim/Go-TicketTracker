@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ticket Tracker System</title>
+    <link rel="stylesheet" href="../static/css/styles.css">
+</head>
+<body>
+
+    <!-- Navigation bar -->
+    <header>
+        <h1>Ticket Tracker System</h1>
+    </header>
+
+    <!-- Create Ticket Form -->
+    <section id="create-ticket">
+        <h2>Create a New Ticket</h2>
+        <form id="ticket-form">
+            <label for="ticket-name">Ticket Name:</label>
+            <input type="text" id="ticket-name" name="ticket-name" required>
+            
+            <label for="ticket-description">Description:</label>
+            <textarea id="ticket-description" name="ticket-description" required></textarea>
+            
+            <button type="submit">Create Ticket</button>
+        </form>
+    </section>
+
+    <!-- Ticket List -->
+    <section id="ticket-list">
+        <h2>All Tickets</h2>
+        <table>
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Ticket Name</th>
+                    <th>Description</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody id="tickets-body">
+                <!-- Tickets will be dynamically added here -->
+            </tbody>
+        </table>
+    </section>
+
+    <script src="script.js"></script>
+</body>
+</html>
