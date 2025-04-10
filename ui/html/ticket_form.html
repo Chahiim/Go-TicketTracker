@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Create Ticket - Food Ticket System</title>
+  <link rel="stylesheet" href="../static/css/styles.css" />
+</head>
+<body>
+
+  <!-- Header -->
+  <section class="hero">
+    <h1>Create a New Food Ticket</h1>
+    <p>Please fill out the details below to create a new ticket.</p>
+  </section>
+
+  <!-- Ticket Form Section -->
+  <section class="form-section">
+    <form id="ticketForm" class="ticket-form">
+      
+      <!-- Customer Name -->
+      <div class="form-group">
+        <label for="customerName">Customer Name:</label>
+        <input type="text" id="customerName" name="customerName" required>
+      </div>
+
+      <!-- Items Section -->
+      <div id="itemsContainer">
+        <div class="item-entry">
+          <label>Item Name:</label>
+          <input type="text" name="itemName[]" required>
+
+          <label>Quantity:</label>
+          <input type="number" name="quantity[]" min="1" required>
+        </div>
+      </div>
+
+      <!-- Add Item Button -->
+      <button type="button" onclick="addItem()" class="add-item-button">+ Add Another Item</button>
+
+      <!-- Submit & Cancel Buttons -->
+      <div class="form-actions">
+        <button type="submit" class="submit-button">Submit Ticket</button>
+        <a href="./home.html" class="cancel-button">Cancel</a>
+      </div>
+    </form>
+  </section>
+
+  <script>
+    // Add new item input fields
+    function addItem() {
+      const container = document.getElementById('itemsContainer');
+      const newItem = document.createElement('div');
+      newItem.className = 'item-entry';
+      newItem.innerHTML = `
+        <label>Item Name:</label>
+        <input type="text" name="itemName[]" required>
+        <label>Quantity:</label>
+        <input type="number" name="quantity[]" min="1" required>
+      `;
+      container.appendChild(newItem);
+    }
+  </script>
+
+</body>
+</html>

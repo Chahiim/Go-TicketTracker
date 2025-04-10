@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>View Active Tickets</title>
+    <link rel="stylesheet" href="../static/css/styles.css">
+</head>
+<body>
+
+    <!-- Header -->
+    <section class="hero">
+        <h1>View Active Tickets</h1>
+        <p>Here you can manage and update active tickets.</p>
+    </section>
+
+    <!-- Ticket Table -->
+    <section class="ticket-table">
+        <table>
+            <thead>
+                <tr>
+                    <th>Ticket ID</th>
+                    <th>Customer Name</th>
+                    <th>Item Name</th>
+                    <th>Quantity</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                <?php
+                if ($result->num_rows > 0) {
+                    // Output data for each row
+                    while($row = $result->fetch_assoc()) {
+                        echo "<tr>";
+                        echo "<td>" . $row["ticket_id"] . "</td>";
+                        echo "<td>" . $row["customer_name"] . "</td>";
+                        echo "<td>" . $row["item_name"] . "</td>";
+                        echo "<td>" . $row["quantity"] . "</td>";
+                        echo "<td>
+                                <a href='update_ticket.php?id=" . $row["ticket_id"] . "' class='update-btn'>Update</a>
+                                <a href='delete_ticket.php?id=" . $row["ticket_id"] . "' class='delete-btn' onclick='return confirm(\"Are you sure?\")'>Delete</a>
+                              </td>";
+                        echo "</tr>";
+                    }
+                } else {
+                    echo "<tr><td colspan='5'>No active tickets found.</td></tr>";
+                }
+                ?>
+            </tbody>
+        </table>
+    </section>
+
+    <!-- Footer -->
+    <footer>
+        <p>&copy; 2025 FoodTrack Systems. All rights reserved.</p>
+    </footer>
+
+</body>
+</html>
