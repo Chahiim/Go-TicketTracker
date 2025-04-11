@@ -9,15 +9,13 @@ import (
 	"os"
 	"time"
 
-	"github.com/chahiim/tapir/internal/data"
+	"github.com/chahiim/ticket_tracker/internal/data"
 	_ "github.com/lib/pq"
 )
 
 type application struct {
 	addr          *string
-	feedback      *data.FeedbackModel
-	journal       *data.JournalModel
-	todo          *data.TodoModel
+	ticket        *data.TicketModel
 	logger        *slog.Logger
 	templateCache map[string]*template.Template
 }
@@ -46,9 +44,7 @@ func main() {
 
 	app := &application{
 		addr:          addr,
-		feedback:      &data.FeedbackModel{DB: db},
-		journal:       &data.JournalModel{DB: db},
-		todo:          &data.TodoModel{DB: db},
+		ticket:        &data.TicketModel{DB: db},
 		logger:        logger,
 		templateCache: templateCache,
 	}

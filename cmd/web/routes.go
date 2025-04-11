@@ -9,15 +9,12 @@ func (app *application) routes() http.Handler {
 	fileServer := http.FileServer(http.Dir("./ui/static/"))
 	mux.Handle("GET /static/", http.StripPrefix("/static", fileServer))
 	mux.HandleFunc("GET /{$}", app.home)
-	mux.HandleFunc("/feedback", app.feedbackHandler)
-	mux.HandleFunc("/journal", app.journalHandler)
-	mux.HandleFunc("/todo", app.todoHandler)
-	mux.HandleFunc("POST /feedback/new", app.createFeedback)
-	mux.HandleFunc("GET /feedback/success", app.feedbackSuccess)
-	mux.HandleFunc("POST /journal/new", app.createJournal)
-	mux.HandleFunc("GET /journal/Success", app.journalSuccess)
-	mux.HandleFunc("POST /todo/new", app.createTodo)
-	mux.HandleFunc("GET /todo/success", app.todoSuccess)
-
+	mux.HandleFunc("/ticket", app.ticketHandler)
+	mux.HandleFunc("/ticketsview", app.ticketViewerHandler)
+	mux.HandleFunc("POST /ticket/new", app.createTicket)
+	/*	mux.HandleFunc("GET /ticket/Read", app.ReadTickets)
+		mux.HandleFunc("POST /ticket/update", app.UpdateTicket)
+		mux.HandleFunc("GET /ticket/delete", app.DeleteTicket)
+	*/
 	return app.loggingMiddleware(mux)
 }
