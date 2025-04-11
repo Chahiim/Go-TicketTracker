@@ -59,9 +59,9 @@ func (app *application) createTicket(w http.ResponseWriter,
 	quantity := r.PostForm.Get("quantity")
 
 	ticket := &data.Ticket{
-		customerName: cname,
-		ItemName:     iname,
-		Quantity:     quantity,
+		CName:    cname,
+		IName:    iname,
+		Quantity: quantity,
 	}
 	//validate data
 	v := validator.NewValidator()

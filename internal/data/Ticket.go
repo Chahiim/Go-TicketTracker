@@ -58,7 +58,7 @@ func (m *TicketModel) ReadAll(ticket *Ticket) error {
 
 	rows, err := m.DB.QueryContext(ctx, query)
 	if err != nil {
-		return nil, err
+		return nil
 	}
 	defer rows.Close()
 
@@ -74,16 +74,16 @@ func (m *TicketModel) ReadAll(ticket *Ticket) error {
 			&ticket.Quantity,
 		)
 		if err != nil {
-			return nil, err
+			return nil
 		}
 		tickets = append(tickets, &ticket)
 	}
 
 	if err = rows.Err(); err != nil {
-		return nil, err
+		return nil
 	}
 
-	return tickets, nil
+	return tickets
 }
 
 func (m *TicketModel) Update(ticket *Ticket) error {
@@ -130,13 +130,9 @@ func (m *TicketModel) Delete(ticket *Ticket) error {
 		return err
 	}
 
-	rowsAffected, err := result.RowsAffected()
+	err := result.RowsAffected()
 	if err != nil {
 		return err
-	}
-
-	if rowsAffected == 0 {
-		return ErrRecordNotFound
 	}
 
 	return nil
