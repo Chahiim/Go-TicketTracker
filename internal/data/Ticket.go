@@ -47,6 +47,7 @@ func (m *TicketModel) Insert(ticket *Ticket) error {
 	).Scan(&ticket.ID, &ticket.CreatedAt)
 }
 
+/*
 func (m *TicketModel) ReadAll(ticket *Ticket) error {
 	query := `
 		SELECT id, created_at, cname, iname, quantity
@@ -137,3 +138,4 @@ func (m *TicketModel) Delete(ticket *Ticket) error {
 
 	return nil
 }
+*/

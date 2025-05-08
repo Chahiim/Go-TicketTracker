@@ -1,6 +1,7 @@
 package main
 
 import (
+	"log"
 	"net/http"
 
 	"github.com/chahiim/ticket_tracker/internal/data"
@@ -19,7 +20,7 @@ func (app *application) home(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func (app *application) ticketHandler(w http.ResponseWriter, r *http.Request) {
+func (app *application) NewTicketHandler(w http.ResponseWriter, r *http.Request) {
 	data := NewTemplateData()
 	data.Title = "Create Ticket - Food Ticket System"
 	data.HeaderText = "Create a New Food Ticket"
@@ -32,7 +33,7 @@ func (app *application) ticketHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func (app *application) ticketViewerHandler(w http.ResponseWriter, r *http.Request) {
+func (app *application) DisplayTicketHandler(w http.ResponseWriter, r *http.Request) {
 	data := NewTemplateData()
 	data.Title = "View Active Tickets"
 	data.HeaderText = "View Active Tickets"
@@ -106,4 +107,21 @@ func (app *application) TicketSuccess(w http.ResponseWriter,
 		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
 		return
 	}
+}
+
+func (app *application) DisplayTickets(w http.ResponseWriter, r *http.Request) {
+
+	readTicket :=
+		`SELECT *
+	FROM ticket
+	LIMIT 5;`
+
+	app.db.Query(readTicket)
+	if err != nil {
+		log.Println(err.Error())
+		http.Error(w,
+			http.StatusText(http.StatusInternalServerError),
+			http.StatusInternalServerError)
+	}
+	defer rows.Close()
 }
