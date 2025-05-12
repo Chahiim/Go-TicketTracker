@@ -130,15 +130,38 @@ func (app *application) DisplayTickets(w http.ResponseWriter, r *http.Request) {
 /*Authentication handlers*/
 
 func (app *application) signupUserForm(w http.ResponseWriter, r *http.Request) {
-	fmt.Fprintln(w, "Added a new user.")
-
-	if string.TrimSpace(name) == "" {
-		errors["name"] = "this field cannot be left blank"
+	data := NewTemplateData()
+	data.Title = "Sign Up "
+	data.HeaderText = "Make Your Account Here"
+	err := app.render(w, http.StatusOK, "signup.page.tmpl", data)
+	if err != nil {
+		app.logger.Error("failed to render home page", "template", "home.tmpl", "error", err, "url", r.URL.Path, "method", r.Method)
+		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
+		return
 	}
 }
 
 func (app *application) signupUser(w http.ResponseWriter, r *http.Request) {
-	fmt.Fprintln(w, "Added a new user.")
+	err := r.ParseForm()
+	if err != nil {
+		app.logger.Error("failed to parse form", "error", err)
+		http.Error(w, "Bad Request", http.StatusBadRequest)
+		return
+	}
+
+	name := r.PostForm.Get("name")
+	email := r.PostForm.Get("email")
+	password := r.PostForm.Get("password")
+
+	user := &data.User{
+		Name:           name,
+		Email:          email,
+		HashedPassword: []byte(password),
+	}
+
+	//validate input
+	v := validator.NewValidator()
+
 }
 
 func (app *application) loginUserForm(w http.ResponseWriter, r *http.Request) {

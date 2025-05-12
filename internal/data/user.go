@@ -1,11 +1,12 @@
 package data
 
 import (
+	"context"
 	"database/sql"
 	"errors"
 	"time"
 
-	_ "github.com/chahiim/ticket_tracker/internal/validator"
+	"github.com/chahiim/ticket_tracker/internal/validator"
 )
 
 var (
@@ -28,8 +29,32 @@ type UserModel struct {
 	DB *sql.DB
 }
 
-func (m *UserModel) Insert(name, email, password string) error {
-	return nil
+func ValidateUser(v *validator.Validator, user *User) {
+	v.Check(validator.NotBlank(user.Name), "name", "must be provided")
+	v.Check(validator.MaxLength(user.Name, 50), "name", "must not be more than 50 bytes long")
+	v.Check(validator.NotBlank(user.Email), "email", "must be provided")
+	v.Check(validator.MaxLength(user.Email, 50), "email", "must not be more than 50 bytes long")
+	v.Check(validator.IsValidEmail(user.Email), "email", "must be a valid email")
+	v.Check(validator.NotBlank(string(user.HashedPassword)), "password", "must be provided")
+}
+
+func (m *UserModel) Insert(user *User) error {
+
+	query := `
+		INSERT INTO user (name, email, password_hash)
+		VALUES ($1, $2, $3)
+		RETURNING id, created_at, activated`
+
+	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+	defer cancel()
+
+	return m.DB.QueryRowContext(
+		ctx,
+		query,
+		user.Name,
+		user.Email,
+		user.HashedPassword,
+	).Scan(&user.ID)
 }
 
 func (m *UserModel) Authenticate(email, password string) (int, error) {

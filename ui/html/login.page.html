@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sign Up</title>
+    <title>Login</title>
     <style>
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
@@ -15,7 +15,7 @@
             margin: 0;
         }
 
-        .signup-container {
+        .login-container {
             background-color: #fff;
             padding: 30px;
             border-radius: 8px;
@@ -41,7 +41,6 @@
         }
 
         input[type="text"],
-        input[type="email"],
         input[type="password"] {
             width: calc(100% - 22px);
             padding: 10px;
@@ -51,8 +50,8 @@
             font-size: 16px;
         }
 
-        .signup-button {
-            background-color: #28a745;
+        .login-button {
+            background-color: #007bff;
             color: white;
             padding: 12px 15px;
             border: none;
@@ -63,45 +62,41 @@
             transition: background-color 0.3s ease;
         }
 
-        .signup-button:hover {
-            background-color: #1e7e34;
+        .login-button:hover {
+            background-color: #0056b3;
         }
 
-        .login-link {
+        .signup-link {
             text-align: center;
             margin-top: 20px;
         }
 
-        .login-link a {
+        .signup-link a {
             color: #007bff;
             text-decoration: none;
         }
 
-        .login-link a:hover {
+        .signup-link a:hover {
             text-decoration: underline;
         }
     </style>
 </head>
 <body>
-    <div class="signup-container">
-        <h2>Sign Up</h2>
-        <form action="/signup" method="POST">
+    <div class="login-container">
+        <h2>Login</h2>
+        <form action="/login" method="POST">
             <div class="form-group">
-                <label for="name">Name:</label>
-                <input type="text" id="name" name="name" required>
-            </div>
-            <div class="form-group">
-                <label for="email">Email:</label>
-                <input type="email" id="email" name="email" required>
+                <label for="username">Username:</label>
+                <input type="text" id="username" name="username" required>
             </div>
             <div class="form-group">
                 <label for="password">Password:</label>
                 <input type="password" id="password" name="password" required>
             </div>
-            <button type="submit" class="signup-button">Sign Up</button>
+            <button type="submit" class="login-button">Log In</button>
         </form>
-        <div class="login-link">
-            Already have an account? <a href="/login">Log In</a>
+        <div class="signup-link">
+            Don't have an account? <a href="./signup.page.html">Sign Up</a>
         </div>
     </div>
 </body>
