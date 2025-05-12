@@ -1,0 +1,48 @@
+<head>
+    <title>
+        EatersUp
+    </title>
+    <link rel="stylesheet" href="../static/css/styles.css">
+</head>
+<body>
+    <header>
+        <h1><a href="/ ">EatersUp</a></h1>
+    </header>
+<nav>
+    <div>
+        <a href="/">Home</a>
+        <a href="/ticket/new">Create Ticket</a>
+    </div>
+    <div>
+        <a href="/user/signup">Signup</a>
+        <a href="/user/login">Login</a>
+        <form action="/user/logout" method="post"><button>Logout</button></form>
+    </div>
+</nav>
+<form action="/user/signup" method="post" novalidate>
+    <div>
+        <label>Name:</label>
+        {{ with .ErrorFromForm.name }}
+            <label class="error">{{ . }}</label>
+        {{end}}
+        <input type="text" name="name" value="{{ .FormData.Get "name" }}">
+    </div>
+    <div>
+        <label>Email:</label>
+        {{ with .ErrorFromForm.email }}
+            <label class="error">{{ . }}</label>
+        {{end}}
+        <input type="email" name="email" value="{{ .FormData.Get "email" }}">
+    </div>
+    <div>
+        <label>Password:</label>
+        {{ with .ErrorFromForm.password }}
+            <label class="error">{{ . }}</label>
+        {{end}}
+        <input type="password" name="password">
+    </div>
+    <div>
+        <input type="submit" value="Signup">
+    </div>
+</form>
+</body>

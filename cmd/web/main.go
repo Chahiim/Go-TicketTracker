@@ -15,7 +15,8 @@ import (
 
 type application struct {
 	addr          *string
-	ticket        *data.TicketModel
+	tickets       *data.TicketModel
+	users         *data.UserModel
 	logger        *slog.Logger
 	templateCache map[string]*template.Template
 }
@@ -44,7 +45,8 @@ func main() {
 
 	app := &application{
 		addr:          addr,
-		ticket:        &data.TicketModel{DB: db},
+		tickets:       &data.TicketModel{DB: db},
+		users:         &data.UserModel{DB: db},
 		logger:        logger,
 		templateCache: templateCache,
 	}

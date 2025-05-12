@@ -1,7 +1,7 @@
 package main
 
 import (
-	"log"
+	"fmt"
 	"net/http"
 
 	"github.com/chahiim/ticket_tracker/internal/data"
@@ -87,7 +87,7 @@ func (app *application) createTicket(w http.ResponseWriter,
 		return
 	}
 
-	err = app.ticket.Insert(ticket)
+	err = app.tickets.Insert(ticket)
 	if err != nil {
 		app.logger.Error("failed to insert ticket", "error", err)
 		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
@@ -109,6 +109,7 @@ func (app *application) TicketSuccess(w http.ResponseWriter,
 	}
 }
 
+/*
 func (app *application) DisplayTickets(w http.ResponseWriter, r *http.Request) {
 
 	readTicket :=
@@ -124,4 +125,30 @@ func (app *application) DisplayTickets(w http.ResponseWriter, r *http.Request) {
 			http.StatusInternalServerError)
 	}
 	defer rows.Close()
+}
+*/
+/*Authentication handlers*/
+
+func (app *application) signupUserForm(w http.ResponseWriter, r *http.Request) {
+	fmt.Fprintln(w, "Added a new user.")
+
+	if string.TrimSpace(name) == "" {
+		errors["name"] = "this field cannot be left blank"
+	}
+}
+
+func (app *application) signupUser(w http.ResponseWriter, r *http.Request) {
+	fmt.Fprintln(w, "Added a new user.")
+}
+
+func (app *application) loginUserForm(w http.ResponseWriter, r *http.Request) {
+	fmt.Fprintln(w, "Added a new user.")
+}
+
+func (app *application) loginUser(w http.ResponseWriter, r *http.Request) {
+	fmt.Fprintln(w, "Added a new user.")
+}
+
+func (app *application) logoutUser(w http.ResponseWriter, r *http.Request) {
+	fmt.Fprintln(w, "Added a new user.")
 }

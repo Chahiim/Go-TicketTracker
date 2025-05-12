@@ -16,6 +16,10 @@ type Ticket struct {
 	Quantity  string
 }
 
+type TicketModel struct {
+	DB *sql.DB
+}
+
 func ValidateTicket(v *validator.Validator, ticket *Ticket) {
 	v.Check(validator.NotBlank(ticket.CName), "customername", "must be provided")
 	v.Check(validator.MaxLength(ticket.CName, 50), "Customer Name", "must not be more than 50 bytes long")
@@ -23,10 +27,6 @@ func ValidateTicket(v *validator.Validator, ticket *Ticket) {
 	v.Check(validator.MaxLength(ticket.IName, 50), "Item Name", "must not be more than 50 bytes long")
 	v.Check(validator.NotBlank(ticket.Quantity), "Quantity", "must be provided")
 	v.Check(validator.MaxLength(ticket.Quantity, 25), "Quantity", "must not be more than 25 bytes")
-}
-
-type TicketModel struct {
-	DB *sql.DB
 }
 
 func (m *TicketModel) Insert(ticket *Ticket) error {
@@ -49,42 +49,13 @@ func (m *TicketModel) Insert(ticket *Ticket) error {
 
 /*
 func (m *TicketModel) ReadAll(ticket *Ticket) error {
-	query := `
-		SELECT id, created_at, cname, iname, quantity
-		FROM ticket
-		ORDER BY created_at DESC`
+	readTicket := `
+		SELECT *
+		FROM ticket;`
 
-	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
-	defer cancel()
+	rows, err := app.DB.Query()
 
-	rows, err := m.DB.QueryContext(ctx, query)
-	if err != nil {
-		return nil
-	}
-	defer rows.Close()
 
-	var tickets []*Ticket
-
-	for rows.Next() {
-		var ticket Ticket
-		err := rows.Scan(
-			&ticket.ID,
-			&ticket.CreatedAt,
-			&ticket.CName,
-			&ticket.IName,
-			&ticket.Quantity,
-		)
-		if err != nil {
-			return nil
-		}
-		tickets = append(tickets, &ticket)
-	}
-
-	if err = rows.Err(); err != nil {
-		return nil
-	}
-
-	return tickets
 }
 
 func (m *TicketModel) Update(ticket *Ticket) error {
