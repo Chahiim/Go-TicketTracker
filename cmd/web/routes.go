@@ -3,6 +3,7 @@ package main
 import (
 	"net/http"
 )
+dynamicMiddleware := alice.New(noSurf)
 
 func (app *application) routes() http.Handler {
 	mux := http.NewServeMux()
