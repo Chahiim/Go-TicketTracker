@@ -221,11 +221,23 @@ func (app *application) loginUser(w http.ResponseWriter, r *http.Request) {
 	id, err := app.users.Authenticate(email, password)
 	if, err != nil {
 		if errors.Is(err, user.ErrInvalidCredentials) {
-			errors_user["default"]
+			errors_user["default"] ="Email or Password is Incorrect"
+			err := app.render(w, http.StatusOK, "login.page.tmpl", data)
+			if err != nil {
+				app.logger.Error("failed to render login page", "template", "login.page.tmpl", "error", err, "url", r.URL.Path, "method", r.Method)
+				http.Error(w, "Internal Server Error", http.StatusInternalServerError)
+				return
+			}
+			return
 		}
+		return
 	}
+	app.session.Put(r, "aunthenticatedUserID", id)
+	http.Redirect(w, r, "/", http.StatusSeeOther)
 }
 
 func (app *application) logoutUser(w http.ResponseWriter, r *http.Request) {
-	fmt.Fprintln(w, "Added a new user.")
+	app.session.Remove(r, "authenticatedUserID")
+	app.session.Put(r, "flash", "You have been logged out successfully.")
+	http.Redirect(w,r, "/user/login", http.StatusSeeOther)
 }
