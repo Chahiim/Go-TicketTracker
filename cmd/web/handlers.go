@@ -135,7 +135,7 @@ func (app *application) signupUserForm(w http.ResponseWriter, r *http.Request) {
 	data.HeaderText = "Make Your Account Here"
 	err := app.render(w, http.StatusOK, "signup.page.tmpl", data)
 	if err != nil {
-		app.logger.Error("failed to render home page", "template", "home.tmpl", "error", err, "url", r.URL.Path, "method", r.Method)
+		app.logger.Error("failed to render sign up page", "template", "signup.page.tmpl", "error", err, "url", r.URL.Path, "method", r.Method)
 		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
 		return
 	}
@@ -161,15 +161,69 @@ func (app *application) signupUser(w http.ResponseWriter, r *http.Request) {
 
 	//validate input
 	v := validator.NewValidator()
+	data.ValidateUser(v, user)
+	//check for validation errors
+	if !v.ValidData() {
+		data := NewTemplateData()
+		data.Title = "Login"
+		data.HeaderText = "Login Here"
+		data.FormErrors = v.Errors
+		data.FormData = map[string]string{
+			"name": name,
+			"email": email,
+			"password": password,
+		}
+		err := app.render(w, http.StatusUnprocessableEntity, "login.page.tmpl", data)
+		if err != nil {
+			app.logger.Error("failed to render login page", "template", "login.page.tmpl", "error", err, "url", r.URL.Path, "method", r.Method)
+			http.Error(w, "Internal Server Error", http.StatusInternalServerError)
+			return
+		}
+		return
+	}
+
+	err = app.user.Insert(user)
+	if err != nil {
+		app.logger.Error("failed to insert User", "error", err)
+		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
+		return
+	}
+	app.session.Put(r, "flash","Sign up was successful")
+	http.Redirect(w, r, "/user/login", http.StatusSeeOther)
 
 }
 
 func (app *application) loginUserForm(w http.ResponseWriter, r *http.Request) {
-	fmt.Fprintln(w, "Added a new user.")
+	data := NewTemplateData()
+	data.Title = "Login"
+	data.HeaderText = "Login Here"
+	err := app.render(w, http.StatusOK, "login.page.tmpl", data)
+	if err != nil {
+		app.logger.Error("failed to render login page", "template", "login.page.tmpl", "error", err, "url", r.URL.Path, "method", r.Method)
+		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
+		return
+	}
 }
 
 func (app *application) loginUser(w http.ResponseWriter, r *http.Request) {
-	fmt.Fprintln(w, "Added a new user.")
+	err := r.ParseForm()
+	if err != nil {
+		app.logger.Error("failed to parse form", "error", err)
+		http.Error(w, "Bad Request", http.StatusBadRequest)
+		return
+	}
+
+	email := r.PostForm.Get("email")
+	password := r.PostForm.Get("password")
+	
+	errors_user := make(map[string]string)
+
+	id, err := app.users.Authenticate(email, password)
+	if, err != nil {
+		if errors.Is(err, user.ErrInvalidCredentials) {
+			errors_user["default"]
+		}
+	}
 }
 
 func (app *application) logoutUser(w http.ResponseWriter, r *http.Request) {
