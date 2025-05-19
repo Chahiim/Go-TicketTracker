@@ -40,7 +40,7 @@ func (app *application) DisplayTicketHandler(w http.ResponseWriter, r *http.Requ
 	data.HeaderText = "View Active Tickets"
 	err := app.render(w, http.StatusOK, "view_tickets.tmpl", data)
 	if err != nil {
-		app.logger.Error("failed to render journal page", "template", "view_tickets.tmpl", "error", err, "url", r.URL.Path, "method", r.Method)
+		app.logger.Error("failed to render view ticket page", "template", "view_tickets.tmpl", "error", err, "url", r.URL.Path, "method", r.Method)
 		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
 		return
 	}
@@ -134,7 +134,6 @@ func (app *application) readTicket(w http.ResponseWriter, r *http.Request) {
 	data.TicketList = tickets
 	data.Flash = flash
 
-	// Render the goal list template
 	err = app.render(w, http.StatusOK, "ticket.view.page.tmpl", data)
 	if err != nil {
 		app.logger.Error("failed to render tickets list", "template", "ticket.view.page.tmpl", "error", err, "url", r.URL.Path, "method", r.Method)
@@ -161,7 +160,6 @@ func (app *application) updateTicket(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Extract other form values
 	cname := r.PostForm.Get("cname")
 	iname := r.PostForm.Get("iname")
 	quantity := r.PostForm.Get("quantity")
@@ -179,7 +177,7 @@ func (app *application) updateTicket(w http.ResponseWriter, r *http.Request) {
 		IName:    iname,
 		Quantity: qInt,
 	}
-	// Validate the submitted goals data
+
 	v := validator.NewValidator()
 	data.ValidateTicket(v, ticket)
 
@@ -187,8 +185,8 @@ func (app *application) updateTicket(w http.ResponseWriter, r *http.Request) {
 		data := NewTemplateData()
 		data.Title = "Edit Ticket"
 		data.HeaderText = "Edit Ticket"
-		data.FormErrors = v.Errors         // Store validation errors
-		data.FormData = map[string]string{ // Retain form input values
+		data.FormErrors = v.Errors // Store validation errors
+		data.FormData = map[string]string{
 			"cname":    cname,
 			"iname":    iname,
 			"quantity": quantity,
