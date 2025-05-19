@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>{{.Title}}</title>
+</head>
+<body>
+    <h2>{{.HeaderText}}</h2>
+    <form action="/ticket/update" method="POST">
+        <input type="hidden" name="ticket_id" value="{{.FormData.ticket_id}}">
+
+        <label>Customer Name:</label>
+        <input name="cname" value="{{index .FormData "cname"}}"><br>
+        <span style="color:red">{{index .FormErrors "customername"}}</span><br>
+
+        <label>Item Name:</label>
+        <input name="iname" value="{{index .FormData "iname"}}"><br>
+        <span style="color:red">{{index .FormErrors "itemname"}}</span><br>
+
+        <label>Quantity:</label>
+        <input name="quantity" value="{{index .FormData "quantity"}}"><br>
+        <span style="color:red">{{index .FormErrors "quantity"}}</span><br>
+
+        <input type="submit" value="Update Ticket">
+    </form>
+    <p><a href="/tickets">Back to Ticket List</a></p>
+</body>
+</html>

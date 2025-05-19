@@ -1,7 +1,7 @@
 -- Table for Registered Users
 
-CREATE TABLE user (
-    id serial PRIMARY KEY,
+CREATE TABLE users (
+    user_id serial PRIMARY KEY,
     created_at timestamp(0) with time zone NOT NULL DEFAULT NOW(),
     name text NOT NULL,
     email citext UNIQUE NOT NULL,

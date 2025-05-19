@@ -13,7 +13,7 @@ type Ticket struct {
 	CreatedAt time.Time
 	CName     string
 	IName     string
-	Quantity  string
+	Quantity  int
 }
 
 type TicketModel struct {
@@ -21,19 +21,20 @@ type TicketModel struct {
 }
 
 func ValidateTicket(v *validator.Validator, ticket *Ticket) {
-	v.Check(validator.NotBlank(ticket.CName), "customername", "must be provided")
+	v.Check(validator.NotBlank(ticket.CName), "Customer Name", "must be provided")
 	v.Check(validator.MaxLength(ticket.CName, 50), "Customer Name", "must not be more than 50 bytes long")
 	v.Check(validator.NotBlank(ticket.IName), "Item Name", "must be provided")
 	v.Check(validator.MaxLength(ticket.IName, 50), "Item Name", "must not be more than 50 bytes long")
-	v.Check(validator.NotBlank(ticket.Quantity), "Quantity", "must be provided")
-	v.Check(validator.MaxLength(ticket.Quantity, 25), "Quantity", "must not be more than 25 bytes")
+	v.Check(ticket.Quantity > 0, "Quantity", "must be greater than zero")
+	v.Check(ticket.Quantity <= 100, "Quantity", "must not exceed 100")
 }
 
+// Insert a ticket into the database
 func (m *TicketModel) Insert(ticket *Ticket) error {
 	query := `
-		INSERT INTO ticket (cname, iname, quantity)
+		INSERT INTO tickets (cname, iname, quantity)
 		VALUES ($1, $2, $3)
-		RETURNING id, created_at`
+		RETURNING ticket_id, created_at`
 
 	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
 	defer cancel()
@@ -47,66 +48,81 @@ func (m *TicketModel) Insert(ticket *Ticket) error {
 	).Scan(&ticket.ID, &ticket.CreatedAt)
 }
 
-/*
-func (m *TicketModel) ReadAll(ticket *Ticket) error {
-	readTicket := `
-		SELECT *
-		FROM ticket;`
+// Get all tickets from the database
+func (m *TicketModel) GetAll() ([]*Ticket, error) {
+	query := `
+		SELECT ticket_id, created_at, cname, iname, quantity
+		FROM tickets`
 
-	rows, err := app.DB.Query()
+	rows, err := m.DB.Query(query)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
 
-
+	var tickets []*Ticket
+	for rows.Next() {
+		var ticket Ticket
+		err := rows.Scan(
+			&ticket.ID,
+			&ticket.CreatedAt,
+			&ticket.CName,
+			&ticket.IName,
+			&ticket.Quantity,
+		)
+		if err != nil {
+			return nil, err
+		}
+		tickets = append(tickets, &ticket)
+	}
+	return tickets, nil
 }
 
-func (m *TicketModel) Update(ticket *Ticket) error {
-	query := `
-		UPDATE ticket
-		SET cname = $1, iname = $2, quantity = $3
-		WHERE id = $4
-		RETURNING id, created_at`
-
+// Delete a ticket
+func (m *TicketModel) Delete(id int64) error {
+	query := `DELETE FROM tickets WHERE ticket_id = $1`
 	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
 	defer cancel()
+	result, err := m.DB.ExecContext(ctx, query, id)
+	if err != nil {
+		return err
+	}
+	rowsAffected, err := result.RowsAffected()
+	if err != nil {
+		return err
+	}
+	if rowsAffected == 0 {
+		return sql.ErrNoRows
+	}
+	return nil
+}
 
-	err := m.DB.QueryRowContext(
+// Update a ticket's information
+func (m *TicketModel) Update(ticket *Ticket) error {
+	query := `UPDATE tickets
+			  SET cname = $1, iname = $2, quantity = $3
+			  WHERE ticket_id = $4`
+	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+	defer cancel()
+	_, err := m.DB.ExecContext(
 		ctx,
 		query,
 		ticket.CName,
 		ticket.IName,
 		ticket.Quantity,
-		ticket.ID,
-	).Scan(&ticket.ID, &ticket.CreatedAt)
-
-	if err != nil {
-		switch err {
-		case sql.ErrNoRows:
-			return ErrRecordNotFound
-		default:
-			return err
-		}
-	}
-
-	return nil
+	)
+	return err
 }
 
-func (m *TicketModel) Delete(ticket *Ticket) error {
-	query := `
-		DELETE FROM ticket
-		WHERE id = $1`
-
+func (m *TicketModel) GetByID(id int64) (*Ticket, error) {
+	query := `SELECT ticket_id, created_at, cname, iname, quantity FROM tickets WHERE ticket_id = $1`
+	var ticket Ticket
 	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
 	defer cancel()
-
-	result, err := m.DB.ExecContext(ctx, query, ticket.ID)
+	err := m.DB.QueryRowContext(ctx, query, id).Scan(
+		&ticket.ID, &ticket.CreatedAt, &ticket.CName, &ticket.IName, &ticket.Quantity)
 	if err != nil {
-		return err
+		return nil, err
 	}
-
-	err := result.RowsAffected()
-	if err != nil {
-		return err
-	}
-
-	return nil
+	return &ticket, nil
 }
-*/

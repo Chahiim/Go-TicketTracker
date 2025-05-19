@@ -2,6 +2,8 @@ package main
 
 import (
 	"net/http"
+
+	"github.com/justinas/nosurf"
 )
 
 func (app *application) loggingMiddleware(next http.Handler) http.Handler {
@@ -21,23 +23,33 @@ func (app *application) loggingMiddleware(next http.Handler) http.Handler {
 
 }
 
-func (app *application) requireAuthenication(next http.Handler) http.Handler {
-	return http.HandleFunc(func(w http.ResponseWriter, r *http.Request) {
-		if !app.IsAuthenticated(r) {
-			http.Redirect(w,r, "/user/login", http.StatusSeeOther)
+/*
+func (app *application) requireAuthentication(next http.Handler) http.Handler {
+	fn := func(w http.ResponseWriter, r *http.Request) {
+		// Use the isAuthenticated
+		if !app.isAuthenticated(r) {
+			app.logger.Warn("Authentication required", "uri", r.URL.RequestURI()) // Log attempt
+
+			// Redirect the user to the login page.
+			http.Redirect(w, r, "/user/login", http.StatusFound)
 			return
 		}
+
 		w.Header().Add("Cache-Control", "no-store")
 		next.ServeHTTP(w, r)
-	})
+	}
+	return http.HandlerFunc(fn)
 }
-
+*/
+// noSurf middleware
 func noSurf(next http.Handler) http.Handler {
 	csrfHandler := nosurf.New(next)
-	csrfHandler.SetBaseCookie(http.Cookie {
+	csrfHandler.SetBaseCookie(http.Cookie{
 		HttpOnly: true,
-		Path: "/",
-		Secure: true,
+		Path:     "/",                  // Available across the entire site
+		Secure:   true,                 // Requires HTTPS
+		SameSite: http.SameSiteLaxMode, // Standard SameSite setting
 	})
-	return csrfhandler
+
+	return csrfHandler
 }

@@ -10,13 +10,15 @@ import (
 	"time"
 
 	"github.com/chahiim/ticket_tracker/internal/data"
+	"github.com/golangcollege/sessions"
 	_ "github.com/lib/pq"
 )
 
 type application struct {
 	addr          *string
 	tickets       *data.TicketModel
-	users         *data.UserModel
+	users         *data.UsersModel
+	session       *sessions.Session
 	logger        *slog.Logger
 	templateCache map[string]*template.Template
 }
@@ -24,6 +26,7 @@ type application struct {
 func main() {
 	addr := flag.String("addr", "", "HTTP network address")
 	dsn := flag.String("dsn", "", "PostgreSQL DSN")
+	secret := flag.String("secret", "CidapE50eufaLsgdJ*20+jEhr0rw_uYh", "Secret key")
 
 	flag.Parse()
 
@@ -33,6 +36,10 @@ func main() {
 		logger.Error(err.Error())
 		os.Exit(1)
 	}
+
+	session := sessions.New([]byte(*secret))
+	session.Lifetime = 1 * time.Hour
+	session.Secure = true
 
 	logger.Info("database connection pool established")
 	templateCache, err := newTemplateCache()
@@ -46,8 +53,9 @@ func main() {
 	app := &application{
 		addr:          addr,
 		tickets:       &data.TicketModel{DB: db},
-		users:         &data.UserModel{DB: db},
+		users:         &data.UsersModel{DB: db},
 		logger:        logger,
+		session:       session,
 		templateCache: templateCache,
 	}
 

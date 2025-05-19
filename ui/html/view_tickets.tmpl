@@ -1,44 +1,40 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{{.Title}}</title>
-    <link rel="stylesheet" href="../static/css/styles.css">
+    <title>View Tickets</title>
 </head>
 <body>
+    <h2>{{.HeaderText}}</h2>
+    {{if .Flash}}<p style="color: green;">{{.Flash}}</p>{{end}}
 
-    <section class="hero">
-        <h1>{{.HeaderText}}</h1>
-        <p>Here you can manage and update active tickets.</p>
-    </section>
+    <table border="1" cellpadding="6">
+        <tr>
+            <th>ID</th>
+            <th>Customer Name</th>
+            <th>Item Name</th>
+            <th>Quantity</th>
+            <th>Actions</th>
+        </tr>
+        {{range .TicketList}}
+        <tr>
+            <td>{{.ID}}</td>
+            <td>{{.CName}}</td>
+            <td>{{.IName}}</td>
+            <td>{{.Quantity}}</td>
+            <td>
+                <form method="GET" action="/ticket/edit" style="display:inline;">
+                    <input type="hidden" name="ticket_id" value="{{.ID}}">
+                    <button type="submit">Edit</button>
+                </form>
+                <form method="POST" action="/ticket/delete" style="display:inline;">
+                    <input type="hidden" name="ticket_id" value="{{.ID}}">
+                    <button type="submit">Delete</button>
+                </form>
+            </td>
+        </tr>
+        {{end}}
+    </table>
 
-    <section class="ticket-table">
-        <table>
-            <thead>
-                <tr>
-                    <th>Ticket ID</th>
-                    <th>Customer Name</th>
-                    <th>Item Name</th>
-                    <th>Quantity</th>
-                    <th>Status</th>
-                </tr>
-            </thead>
-            <tbody>
-                <tr>
-                    <td>{ticket.id}</td>
-                    <td>Alice Smith</td>
-                    <td>Apples</td>
-                    <td>12</td>
-                    <td>Active</td>
-                </tr>
-            </tbody>
-        </table>
-    </section>
-
-    <footer>
-        <p>&copy; 2025 FoodTrack Systems. All rights reserved.</p>
-    </footer>
-
+    <p><a href="/">Return to Home</a></p>
 </body>
 </html>

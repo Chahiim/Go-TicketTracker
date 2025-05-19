@@ -1,8 +1,9 @@
 package main
 
 import (
-	"fmt"
+	_ "errors"
 	"net/http"
+	"strconv"
 
 	"github.com/chahiim/ticket_tracker/internal/data"
 	"github.com/chahiim/ticket_tracker/internal/validator"
@@ -59,10 +60,18 @@ func (app *application) createTicket(w http.ResponseWriter,
 	iname := r.PostForm.Get("itemName")
 	quantity := r.PostForm.Get("quantity")
 
+	qStr := r.PostForm.Get("quantity")
+	qInt, err := strconv.Atoi(qStr)
+	if err != nil {
+		app.logger.Error("invalid quantity", "value", qStr)
+		http.Error(w, "Invalid quantity", http.StatusBadRequest)
+		return
+	}
+
 	ticket := &data.Ticket{
 		CName:    cname,
 		IName:    iname,
-		Quantity: quantity,
+		Quantity: qInt,
 	}
 	//validate data
 	v := validator.NewValidator()
@@ -109,39 +118,34 @@ func (app *application) TicketSuccess(w http.ResponseWriter,
 	}
 }
 
-/*
-func (app *application) DisplayTickets(w http.ResponseWriter, r *http.Request) {
+func (app *application) readTicket(w http.ResponseWriter, r *http.Request) {
 
-	readTicket :=
-		`SELECT *
-	FROM ticket
-	LIMIT 5;`
-
-	app.db.Query(readTicket)
+	// Call function to get all tickets
+	tickets, err := app.tickets.GetAll()
 	if err != nil {
-		log.Println(err.Error())
-		http.Error(w,
-			http.StatusText(http.StatusInternalServerError),
-			http.StatusInternalServerError)
-	}
-	defer rows.Close()
-}
-*/
-/*Authentication handlers*/
-
-func (app *application) signupUserForm(w http.ResponseWriter, r *http.Request) {
-	data := NewTemplateData()
-	data.Title = "Sign Up "
-	data.HeaderText = "Make Your Account Here"
-	err := app.render(w, http.StatusOK, "signup.page.tmpl", data)
-	if err != nil {
-		app.logger.Error("failed to render sign up page", "template", "signup.page.tmpl", "error", err, "url", r.URL.Path, "method", r.Method)
+		app.logger.Error("failed to fetch tickets", "error", err)
 		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
 		return
 	}
+
+	flash := app.session.PopString(r, "flash")
+
+	data := NewTemplateData()
+	data.TicketList = tickets
+	data.Flash = flash
+
+	// Render the goal list template
+	err = app.render(w, http.StatusOK, "ticket.view.page.tmpl", data)
+	if err != nil {
+		app.logger.Error("failed to render tickets list", "template", "ticket.view.page.tmpl", "error", err, "url", r.URL.Path, "method", r.Method)
+		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
+		return
+	}
+
 }
 
-func (app *application) signupUser(w http.ResponseWriter, r *http.Request) {
+func (app *application) updateTicket(w http.ResponseWriter, r *http.Request) {
+
 	err := r.ParseForm()
 	if err != nil {
 		app.logger.Error("failed to parse form", "error", err)
@@ -149,95 +153,113 @@ func (app *application) signupUser(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	name := r.PostForm.Get("name")
-	email := r.PostForm.Get("email")
-	password := r.PostForm.Get("password")
-
-	user := &data.User{
-		Name:           name,
-		Email:          email,
-		HashedPassword: []byte(password),
+	ticketid := r.PostForm.Get("ticket_id")
+	TicketID, err := strconv.ParseInt(ticketid, 10, 64)
+	if err != nil {
+		app.logger.Error("invalid ticket id", "value", TicketID)
+		http.Error(w, "Invalid ticket ID", http.StatusBadRequest)
+		return
 	}
 
-	//validate input
+	// Extract other form values
+	cname := r.PostForm.Get("cname")
+	iname := r.PostForm.Get("iname")
+	quantity := r.PostForm.Get("quantity")
+
+	qStr := r.PostForm.Get("quantity")
+	qInt, err := strconv.Atoi(qStr)
+	if err != nil {
+		app.logger.Error("invalid quantity", "value", qStr)
+		http.Error(w, "Invalid quantity", http.StatusBadRequest)
+		return
+	}
+
+	ticket := &data.Ticket{
+		CName:    cname,
+		IName:    iname,
+		Quantity: qInt,
+	}
+	// Validate the submitted goals data
 	v := validator.NewValidator()
-	data.ValidateUser(v, user)
-	//check for validation errors
+	data.ValidateTicket(v, ticket)
+
 	if !v.ValidData() {
 		data := NewTemplateData()
-		data.Title = "Login"
-		data.HeaderText = "Login Here"
-		data.FormErrors = v.Errors
-		data.FormData = map[string]string{
-			"name": name,
-			"email": email,
-			"password": password,
+		data.Title = "Edit Ticket"
+		data.HeaderText = "Edit Ticket"
+		data.FormErrors = v.Errors         // Store validation errors
+		data.FormData = map[string]string{ // Retain form input values
+			"cname":    cname,
+			"iname":    iname,
+			"quantity": quantity,
 		}
-		err := app.render(w, http.StatusUnprocessableEntity, "login.page.tmpl", data)
+
+		err := app.render(w, http.StatusUnprocessableEntity, "ticket.edit.page.tmpl", data)
 		if err != nil {
-			app.logger.Error("failed to render login page", "template", "login.page.tmpl", "error", err, "url", r.URL.Path, "method", r.Method)
+			app.logger.Error("failed to render edit ticket form", "error", err)
 			http.Error(w, "Internal Server Error", http.StatusInternalServerError)
 			return
 		}
 		return
 	}
 
-	err = app.user.Insert(user)
+	err = app.tickets.Update(ticket)
 	if err != nil {
-		app.logger.Error("failed to insert User", "error", err)
+		app.logger.Error("failed to update ticket", "error", err)
 		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
 		return
 	}
-	app.session.Put(r, "flash","Sign up was successful")
-	http.Redirect(w, r, "/user/login", http.StatusSeeOther)
 
-}
-
-func (app *application) loginUserForm(w http.ResponseWriter, r *http.Request) {
-	data := NewTemplateData()
-	data.Title = "Login"
-	data.HeaderText = "Login Here"
-	err := app.render(w, http.StatusOK, "login.page.tmpl", data)
-	if err != nil {
-		app.logger.Error("failed to render login page", "template", "login.page.tmpl", "error", err, "url", r.URL.Path, "method", r.Method)
-		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
-		return
-	}
-}
-
-func (app *application) loginUser(w http.ResponseWriter, r *http.Request) {
-	err := r.ParseForm()
-	if err != nil {
-		app.logger.Error("failed to parse form", "error", err)
-		http.Error(w, "Bad Request", http.StatusBadRequest)
-		return
-	}
-
-	email := r.PostForm.Get("email")
-	password := r.PostForm.Get("password")
-	
-	errors_user := make(map[string]string)
-
-	id, err := app.users.Authenticate(email, password)
-	if, err != nil {
-		if errors.Is(err, user.ErrInvalidCredentials) {
-			errors_user["default"] ="Email or Password is Incorrect"
-			err := app.render(w, http.StatusOK, "login.page.tmpl", data)
-			if err != nil {
-				app.logger.Error("failed to render login page", "template", "login.page.tmpl", "error", err, "url", r.URL.Path, "method", r.Method)
-				http.Error(w, "Internal Server Error", http.StatusInternalServerError)
-				return
-			}
-			return
-		}
-		return
-	}
-	app.session.Put(r, "aunthenticatedUserID", id)
 	http.Redirect(w, r, "/", http.StatusSeeOther)
 }
 
-func (app *application) logoutUser(w http.ResponseWriter, r *http.Request) {
-	app.session.Remove(r, "authenticatedUserID")
-	app.session.Put(r, "flash", "You have been logged out successfully.")
-	http.Redirect(w,r, "/user/login", http.StatusSeeOther)
+func (app *application) deleteTicket(w http.ResponseWriter, r *http.Request) {
+
+	err := r.ParseForm()
+	if err != nil {
+		http.Error(w, "Unable to parse form", http.StatusBadRequest)
+		return
+	}
+
+	ticketid := r.FormValue("ticket_id")
+	ticketID, err := strconv.ParseInt(ticketid, 10, 64)
+	if err != nil {
+		http.Error(w, "Invalid ticket ID", http.StatusBadRequest)
+		return
+	}
+
+	err = app.tickets.Delete(ticketID)
+	if err != nil {
+		http.Error(w, "Could not delete ticket", http.StatusInternalServerError)
+		return
+	}
+
+	http.Redirect(w, r, "/", http.StatusSeeOther)
+
+}
+
+func (app *application) editTicketForm(w http.ResponseWriter, r *http.Request) {
+	idStr := r.URL.Query().Get("ticket_id")
+	id, err := strconv.ParseInt(idStr, 10, 64)
+	if err != nil {
+		http.Error(w, "Invalid ticket ID", http.StatusBadRequest)
+		return
+	}
+
+	ticket, err := app.tickets.GetByID(id)
+	if err != nil {
+		http.Error(w, "Ticket not found", http.StatusNotFound)
+		return
+	}
+
+	data := NewTemplateData()
+	data.Title = "Edit Ticket"
+	data.HeaderText = "Edit Ticket"
+	data.FormData = map[string]string{
+		"ticket_id": strconv.FormatInt(ticket.ID, 10),
+		"cname":     ticket.CName,
+		"iname":     ticket.IName,
+		"quantity":  strconv.Itoa(ticket.Quantity),
+	}
+	app.render(w, http.StatusOK, "ticket.edit.page.tmpl", data)
 }
